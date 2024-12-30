@@ -1,13 +1,11 @@
-from mistralai import Mistral 
-
-from aiogram import Bot, Dispatcher, Router
+from aiogram import Router, F
 from aiogram.types import Message 
 from aiogram.filters import CommandStart, Command
 
-from config import token 
+from config import models
 from config import ai_token
 
-import asyncio
+from mistralai import Mistral 
 
 rt: Router = Router()
 client = Mistral(api_key=ai_token)
@@ -23,13 +21,13 @@ async def help(msg: Message) -> None:
     await msg.answer("По любым вопросам обращайтесь сюда ➡️ https://t.me/nameofaccaunt ")
 
 
-@rt.message()
+@rt.message(F.text) 
 async def gen(msg: Message) -> None:
 
     wait_message = await msg.answer("Готовлю ответ...")
 
     response = client.chat.complete(
-        model='mistral-small-latest', 
+        model = models["ministral-8b-latest"], 
         messages = [
             {
                 "role": "user",
@@ -37,18 +35,7 @@ async def gen(msg: Message) -> None:
             },
         ],
     )
+    
     await msg.bot.delete_message(chat_id=msg.chat.id, message_id=wait_message.message_id)
     await msg.answer(response.choices[0].message.content, parse_mode = "Markdown")
-
-
-async def main() -> None:
-    bot = Bot(token=token)
-    dp = Dispatcher()
-    dp.include_router(rt)
-    await dp.start_polling(bot)
-
-
-if __name__ == '__main__':
-    print("Start!")
-    asyncio.run(main())
 
